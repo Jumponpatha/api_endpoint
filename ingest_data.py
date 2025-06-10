@@ -1,13 +1,23 @@
-# SQL command to create a table in the database
-sql_command = """CREATE TABLE emp (
-staff_number INTEGER PRIMARY KEY,
-fname VARCHAR(20),
-lname VARCHAR(30),
-gender CHAR(1),
-joining DATE);"""
+import pandas as pd
+from database import sqlite_connection
 
-# execute the statement
-crsr.execute(sql_command)
+conn, cursor_obj = sqlite_connection()
 
-# close the connection
-connection.close()
+# Read the CSV files
+orders_df = pd.read_csv("data/orders.csv")
+aisles_df = pd.read_csv("data/aisles.csv")
+products_df = pd.read_csv("data/products.csv")
+departments_df = pd.read_csv("data/departments.csv")
+
+
+def ingest_to_sqlite(df, table_name):
+    try:
+        df.to_sql(name=table_name, con=conn, if_exists='replace')
+        print(f"The Dataframe of {df.head()} load to '{table_name}' ")
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+    finally:
+        if 'conn' in locals():
+            conn.close()
+
+ingest_to_sqlite(df=departments_df, table_name="departments")
